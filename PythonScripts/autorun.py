@@ -47,20 +47,23 @@ class MainWindow(object):
     def setAcceleratedFileLabel(self):
         Label(self.root, text = 'Accelerated Video: ').grid(row=1, sticky=W)
         self.acceleratedFile.append(StringVar())
-        self.acceleratedFile.append(Label(self.root,
-                                          textvariable = self.acceleratedFile[0]))
+        self.acceleratedFile.append(
+            Label(self.root, textvariable = self.acceleratedFile[0])
+        )
 
         self.acceleratedFile[1].grid(row=1, column=1, columnspan=2)
 
     def setExtractor(self):
         Label(self.root, text = "Extractor: ").grid(row=2, sticky=W)
         self.extractor.append(StringVar())
-        self.extractor.append(Radiobutton(self.root, text = "face",
-                                          variable=self.extractor[0],
-                                          value="face"))
-        self.extractor.append(Radiobutton(self.root, text = "pedestrian",
-                                          variable=self.extractor[0],
-                                          value="pedestrian"))
+        self.extractor.append(
+            Radiobutton(self.root, text = "face",
+                        variable=self.extractor[0], value="face")
+        )
+        self.extractor.append(
+            Radiobutton(self.root, text = "pedestrian",
+                        variable=self.extractor[0], value="pedestrian")
+        )
         
         self.extractor[1].grid(row=2, column=1)
         self.extractor[2].grid(row=2, column=2)
@@ -80,22 +83,6 @@ class MainWindow(object):
             self.weights.append([tk.Entry(self.root, width=4) for _ in range(2)])
             [weight.insert(0, '50') for weight in self.weights[i]]
 
-        """Label(self.root, text = 'α Weights: ').grid(row=4, sticky=W)
-        self.weights.append([tk.Entry(self.root, width=4) for _ in range(2)])
-        [alpha.insert(0, '50') for alpha in self.weights[0]]
-    
-        Label(self.root, text = 'β Weights: ').grid(row=5, sticky=W)
-        self.weights.append([tk.Entry(self.root, width=4) for _ in range(2)])
-        [beta.insert(0, '50') for beta in self.weights[1]]
-        
-        Label(self.root, text = 'γ Weights: ').grid(row=6, sticky=W)
-        self.weights.append([tk.Entry(self.root, width=4) for _ in range(2)])
-        [gama.insert(0, '50') for gama in self.weights[2]]
-        
-        Label(self.root, text = 'η Weights: ').grid(row=5, sticky=W)
-        self.weights.append([tk.Entry(self.root, width=7) for _ in range(2)])
-        [eta.insert(0, '50') for eta in self.weights[3]]"""
-
         for i in range(len(self.weights)):
             for j in range(len(self.weights[i])):
                 self.weights[i][j].grid(row=i+4, column=j+1)
@@ -104,8 +91,12 @@ class MainWindow(object):
         self.errorLabel = Label(self.root, text = '')
 
     def setButtons(self):
-        self.buttons.append(Button(root, text='Speed Up Video', command=self.preProcessAndRun))
-        self.buttons.append(Button(root, text='Stabilize Video', command=self.videoStabilize))
+        self.buttons.append(
+            Button(root, text='Speed Up Video', command=self.preProcessAndRun)
+        )
+        self.buttons.append(
+            Button(root, text='Stabilize Video', command=self.videoStabilize)
+        )
         self.buttons[0].grid(row=8, column=1)
         self.buttons[1].grid(row=8, column=2)
 
@@ -142,7 +133,8 @@ class MainWindow(object):
         text.tag_configure('normal', font=('Arial', 10))
         text.insert(tk.END, 'About\n\n', 'title')
         text.insert(tk.END, 'See more about the project on:\n', 'normal')
-        text.insert(tk.END, '\thttps://github.com/verlab/SemanticFastForward_ECCVW_2016\n', 'italics')
+        text.insert(tk.END, '\thttps://github.com/verlab/SemanticFastForward'
+                            + '_ECCVW_2016\n', 'italics')
         text.configure(state='disabled')
         text.pack()
         aboutscreen.title('About')
@@ -160,21 +152,27 @@ class MainWindow(object):
         
         text.insert(tk.END, 'Accelerate Video\n', 'subtitle')
         text.insert(tk.END, '1: ', 'bold_italics')
-        text.insert(tk.END, 'Go to File->OpenVideo and select the video file that will be accelerated.\n', 'normal')
+        text.insert(tk.END, 'Go to File->OpenVideo and select the video '
+                            + 'file that will be accelerated.\n', 'normal')
         text.insert(tk.END, '2: ', 'bold_italics')
         text.insert(tk.END, 'Choose the speedup (speedup > 1).\n', 'normal')
         text.insert(tk.END, '3: ', 'bold_italics')
-        text.insert(tk.END, 'Choose graph weights α, β, γ, η. If you don\'t change anything, the default parameters will be used.\n', 'normal')
+        text.insert(tk.END, 'Choose graph weights α, β, γ, η. If you don\'t change '
+                            + 'anything, the default parameters will be used.\n', 'normal')
         text.insert(tk.END, '4: ', 'bold_italics')
-        text.insert(tk.END, 'Click on \'Speed Up Video\' and wait. Your video is being accelerated.\n', 'normal')
+        text.insert(tk.END, 'Click on \'Speed Up Video\' and wait. Your '
+                            + 'video is being accelerated.\n', 'normal')
         
         text.insert(tk.END, '\nStabilize Video\n', 'subtitle')
         text.insert(tk.END, '1: ', 'bold_italics')
-        text.insert(tk.END, 'Go to File->OpenAcceleratedVideo and select the accelerated video file that will be stabilized.\n', 'normal')
+        text.insert(tk.END, 'Go to File->OpenAcceleratedVideo and select the '
+                            + 'accelerated video file that will be stabilized.\n', 'normal')
         text.insert(tk.END, '2: ', 'bold_italics')
-        text.insert(tk.END, 'Go to File->OpenVideo and select the original video file.\n', 'normal')
+        text.insert(tk.END, 'Go to File->OpenVideo and select the original '
+                            + 'video file.\n', 'normal')
         text.insert(tk.END, '3: ', 'bold_italics')
-        text.insert(tk.END, 'Click on \'Stabilize Video\' and wait. Your video is being stabilized.\n', 'normal')
+        text.insert(tk.END, 'Click on \'Stabilize Video\' and wait. Your '
+                            + 'video is being stabilized.\n', 'normal')
         
         text.configure(state='disabled')
         text.pack()
@@ -198,13 +196,15 @@ class MainWindow(object):
 
     def preProcess(self):
         speed = self.speedUp.get()
+
+        extractor = self.extractor[0].get()
             
         alpha = [a.get() for a in self.weights[0]]
         beta = [b.get() for b in self.weights[1]]
         gama = [g.get() for g in self.weights[2]]
         eta = [e.get() for e in self.weights[3]]
 
-        self.hyperlapse.setup(speed, alpha, beta, gama, eta)
+        self.hyperlapse.setup(speed, extractor, alpha, beta, gama, eta)
 
     def run(self):
         self.createLogWindow()

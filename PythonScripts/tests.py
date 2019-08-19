@@ -4,6 +4,7 @@ from video import Video
 import os
 
 class TestHyperlapse(unittest.TestCase):
+    
     def setUp(self):
         video = Video()
         video.setVideoFile('/home/victorhugomoura/Documents/example.mp4')
@@ -18,6 +19,13 @@ class TestHyperlapse(unittest.TestCase):
         self.assertEqual(self.hyperlapse.getPath(), os.getcwd())
         self.hyperlapse.setPath('/')
         self.assertEqual(self.hyperlapse.getPath(), '/')
+
+    def testExtractor(self):
+        self.assertRaises(InputError, self.hyperlapse.setExtractor, '')
+        self.assertEqual(self.hyperlapse.getExtractor(), '')
+        self.hyperlapse.setExtractor('face')
+        self.assertEqual(self.hyperlapse.getExtractor(), 'face')
+
 
     def testVelocity(self):
         self.assertRaises(InputError, self.hyperlapse.setVelocity, '')
@@ -67,13 +75,18 @@ class TestHyperlapse(unittest.TestCase):
         gama = ['5', '6']
         eta = ['8', '7']
         speed = '10'
+        extractor = 'face'
 
         # check if it don't raise an exception
-        self.hyperlapse.setup(speed, alpha, beta, gama, eta)
+        self.hyperlapse.setup(speed, extractor, alpha, beta, gama, eta)
 
         speed = '1'
-        self.assertRaises(InputError, self.hyperlapse.setup, speed, alpha, beta, gama, eta)
-
+        self.assertRaises(InputError, self.hyperlapse.setup, speed, extractor, alpha, beta, gama, eta)
+        
+        speed = '10'
+        extractor = ''
+        self.assertRaises(InputError, self.hyperlapse.setup, speed, extractor, alpha, beta, gama, eta)
+    
     def testInputError(self):
         self.hyperlapse.getVideo().setVideoFile('')
         
@@ -83,6 +96,7 @@ class TestHyperlapse(unittest.TestCase):
             self.assertEqual(IE.__str__(), 'Please insert input video first')
 
 class TestVideo(unittest.TestCase):
+    
     def setUp(self):
         self.video = Video()
         self.video.setVideoFile('/home/victorhugomoura/Documents/example.mp4')

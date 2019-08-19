@@ -12,6 +12,7 @@ class SemanticHyperlapse(object):
     def __init__(self):
         self.video = None
         self.path = ''
+        self.extractor = ''
         self.velocity = 0
         self.maxVel = 0
         self.alpha = []
@@ -31,14 +32,20 @@ class SemanticHyperlapse(object):
     def setPath(self, path):
         self.path = path
 
+    def getExtractor(self):
+        return self.extractor
+
+    def setExtractor(self, extractor):
+        self.checkExtractor(extractor)
+        self.extractor = extractor
+
     def getVelocity(self):
         return self.velocity
 
     def setVelocity(self, velocity):
-        if self.isEmpty(velocity):
-            raise InputError('Please insert speedup first')
         try:
-            self.checkAndSetVelocity(velocity)
+            self.checkVelocity(velocity)
+            self.velocity = float(int(velocity))
         except ValueError:
             raise InputError('Invalid speedup value')
             
@@ -76,22 +83,35 @@ class SemanticHyperlapse(object):
         self.setPath(os.getcwd()) #get project path 
         self.video.setPaths()
 
-    def checkAndSetVelocity(self, velocity):
-        velocity = float(int(velocity))
+    def checkExtractor(self, extractor):
+        if self.isEmpty(extractor):
+            raise InputError('Please select an extractor')
+
+    def checkVelocity(self, velocity):
+        if self.isEmpty(velocity):
+            raise InputError('Please insert speedup')
+
+        velocity = int(velocity) #raises ValueError if it isn't a number
         if velocity <= 1:
             raise InputError('Error: speedup <= 1')
-        self.velocity = velocity
     
-    def isEmpty(self, inputText):
-        if inputText == '':
-            return True
-        return False
+    def checkVideoInput(self):
+        if self.getVideo().isEmpty():
+            raise InputError('Please insert input video first')
+
+        if self.getVideo().isInvalid():
+            raise InputError('Video format invalid.\nValid formats: mp4, avi')
 
     def checkAndSetWeights(self, weights):
         try:
             return self.convertWeights(weights)
         except ValueError:
             raise InputError('Please fill correctly all weights inputs')
+
+    def isEmpty(self, inputText):
+        if inputText == '':
+            return True
+        return False
 
     def convertWeights(self, weights):
         for i in range(len(weights)):
@@ -109,7 +129,7 @@ class SemanticHyperlapse(object):
         
         return fullCommand
 
-    def runOpticalFlow(self):
+    def runOpticalFlow(self): # pragma: no cover
         os.chdir('../Vid2OpticalFlowCSV')
 
         os.system(self.opticalFlowCommand())
@@ -117,16 +137,17 @@ class SemanticHyperlapse(object):
         os.chdir(self.getPath())
 
 
-    def runMatlabSemanticInfo(self, eng):
+    def runMatlabSemanticInfo(self, eng): # pragma: no cover
         videoFile = self.video.getVideoFile()
         extractionFile = videoFile[:-4] + '_face_extracted.mat'
+        extractor = self.extractor
 
-        eng.ExtractAndSave(videoFile, nargout=0)
+        eng.ExtractAndSave(videoFile, extractor, nargout=0)
         (aux, nonSemanticFrames, semanticFrames) = eng.GetSemanticRanges(extractionFile, nargout=3)
 
         return (float(nonSemanticFrames), float(semanticFrames))
 
-    def getSemanticInfo(self, eng):
+    def getSemanticInfo(self, eng): # pragma: no cover
         eng.cd('SemanticScripts')
         eng.addpath(self.video.getVideoPath())
         eng.addpath(os.getcwd())
@@ -136,7 +157,7 @@ class SemanticHyperlapse(object):
         eng.cd(self.getPath())
         return (nonSemanticFrames, semanticFrames)
 
-    def speedUp(self, eng, nonSemanticFrames, semanticFrames):
+    def speedUp(self, eng, nonSemanticFrames, semanticFrames): # pragma: no cover
         eng.addpath(os.getcwd())
         eng.addpath('Util')
     
@@ -144,22 +165,22 @@ class SemanticHyperlapse(object):
         beta = matlab.double([self.getBeta()])
         gama = matlab.double([self.getGama()])
         eta = matlab.double([self.getEta()])
+
+        velocity = self.getVelocity()
+        video = self.getVideo()
     
         (ss, sns) = eng.FindingBestSpeedups(nonSemanticFrames, semanticFrames,
-                                            self.getVelocity(), True, nargout=2)
+                                            velocity, True, nargout=2)
             
-        eng.SpeedupVideo(self.video.getVideoPath(), self.video.getVideoName(), ss, sns, 
-                        alpha, beta, gama, eta, 'Speedup', self.getVelocity(), nargout=0)
+        eng.SpeedupVideo(
+            video.getVideoPath(), video.getVideoName(), self.getExtractor(),
+            ss, sns, alpha, beta, gama, eta, 'Speedup', velocity, nargout=0
+        )
 
-    def checkVideoInput(self):
-        if self.getVideo().isEmpty():
-            raise InputError('Please insert input video first')
-
-        if self.getVideo().isInvalid():
-            raise InputError('Video format invalid.\nValid formats: mp4, avi')
-
-    def setup(self, inputSpeedUp, alphaInput, betaInput, gamaInput, etaInput):	
+    def setup(self, inputSpeedUp, extractor, alphaInput, betaInput, gamaInput, etaInput):	
         self.checkVideoInput()
+        
+        self.setExtractor(extractor)
 
         self.setVelocity(inputSpeedUp)
         self.setMaxVel(self.getVelocity() * 10.0)
@@ -169,7 +190,7 @@ class SemanticHyperlapse(object):
         self.setGama(gamaInput)
         self.setEta(etaInput)
 
-    def run(self, writeFunction):
+    def run(self, writeFunction): # pragma: no cover
         function = writeFunction
         
         function('1/5 - Running Optical Flow\n', 'title')
