@@ -20,8 +20,6 @@ class MainWindow(object):
         self.errorLabel = None
         self.buttons = []
         self.logText = None
-        self.hyperlapse = None
-        self.acceleratedVideo = None
 
     def start(self):
         self.setInputFileLabel()
@@ -31,8 +29,6 @@ class MainWindow(object):
         self.setWeightsEntries()
         self.setErrorLabel()
         self.setButtons()
-        self.setHyperlapse()
-        self.setAcceleratedVideo()
         self.setMenu()
         self.root.title('Semantic Hyperlapse')
         self.root.mainloop()
@@ -41,6 +37,7 @@ class MainWindow(object):
         Label(self.root, text = 'Input Video: ').grid(row=0, sticky=W)
         self.inputFile.append(StringVar())
         self.inputFile.append(Label(self.root, textvariable = self.inputFile[0]))
+        self.inputFile.append('')
 
         self.inputFile[1].grid(row=0, column=1, columnspan=2)
 
@@ -50,6 +47,7 @@ class MainWindow(object):
         self.acceleratedFile.append(
             Label(self.root, textvariable = self.acceleratedFile[0])
         )
+        self.acceleratedFile.append('')
 
         self.acceleratedFile[1].grid(row=1, column=1, columnspan=2)
 
@@ -100,12 +98,6 @@ class MainWindow(object):
         self.buttons[0].grid(row=8, column=1)
         self.buttons[1].grid(row=8, column=2)
 
-    def setHyperlapse(self):
-        self.hyperlapse = SemanticHyperlapse()
-        self.hyperlapse.setVideo(Video())
-
-    def setAcceleratedVideo(self):
-        self.acceleratedVideo = Video()
 
     def setMenu(self):
         menubar = Menu(self.root)
@@ -179,24 +171,26 @@ class MainWindow(object):
         helpscreen.title('Help')
 
     def openOriginalVideo(self):
-        self.hyperlapse.video.setVideoFile(tkFileDialog.askopenfilename(
+        videoFile = tkFileDialog.askopenfilename(
                 filetypes=([('All files', '*.*'), ('MP4 files', '*.mp4'),
-                            ('AVI files', '*.avi')])))
-        self.hyperlapse.setPaths()
-
-        self.inputFile[0].set(self.hyperlapse.video.getVideoName())
+                            ('AVI files', '*.avi')]))
+        videoName = os.path.basename(videoFile)
+        
+        self.inputFile[0].set(videoName)
+        self.inputFile[2] = videoFile
 
     def openAcceleratedVideo(self):
-        self.acceleratedVideo.setVideoFile(tkFileDialog.askopenfilename(
+        videoFile = tkFileDialog.askopenfilename(
             filetypes=([('All files', '*.*'), ('MP4 files', '*.mp4'),
-                        ('AVI files', '*.avi')])))
-        self.acceleratedVideo.setPaths()
+                        ('AVI files', '*.avi')]))
+        videoName = os.path.basename(videoFile)
 
-        self.acceleratedFile[0].set(self.acceleratedVideo.getVideoName())
+        self.acceleratedFile[0].set(videoName)
+        self.acceleratedFile[2] = videoFile
 
     def preProcess(self):
+        video = Video(self.inputFile[2])
         speed = self.speedUp.get()
-
         extractor = self.extractor[0].get()
             
         alpha = [a.get() for a in self.weights[0]]
@@ -204,16 +198,17 @@ class MainWindow(object):
         gama = [g.get() for g in self.weights[2]]
         eta = [e.get() for e in self.weights[3]]
 
-        self.hyperlapse.setup(speed, extractor, alpha, beta, gama, eta)
-
-    def run(self):
-        self.createLogWindow()
-        self.hyperlapse.run(self.addLog)
+        return (video, speed, extractor, alpha, beta, gama, eta)
 
     def preProcessAndRun(self):
+        video, speed, extractor,\
+            alpha, beta, gama, eta = self.preProcess()
+
         try:
-            self.preProcess()
-            self.run()
+            hyperlapse = SemanticHyperlapse(video, extractor, speed,
+                                            alpha, beta, gama, eta)           
+            self.createLogWindow()
+            hyperlapse.run(self.addLog)
         except InputError as IE:
             self.errorLabel['text'] = IE.msg
             self.errorLabel.grid(row=9, columnspan=3)

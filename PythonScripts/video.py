@@ -1,39 +1,26 @@
 import os
 
 class Video(object):
-    def __init__(self):
-        self.videofile = ''
-        self.videopath = ''
-        self.videoname = ''
-
-    def getVideoFile(self):
-        return self.videofile
-    
-    def setVideoFile(self, videofile):
+    def __init__(self, videofile):
         self.videofile = videofile
+        self.videopath = os.path.dirname(os.path.abspath(videofile))
+        self.videoname = videofile[len(self.videopath)+1:]
 
-    def getVideoPath(self):
-        return self.videopath
-
-    def setVideoPath(self, videopath):
-        self.videopath = videopath
-
-    def getVideoName(self):
+    def name(self):
         return self.videoname
 
-    def setVideoName(self, videoname):
-        self.videoname = videoname
+    def file(self):
+        return self.videofile
 
-    def setPaths(self):
-        self.setVideoPath(os.path.dirname(os.path.abspath(self.getVideoFile())))
-        self.setVideoName(self.getVideoFile()[len(self.getVideoPath())+1:])
+    def path(self):
+        return self.videopath
 
     def isEmpty(self):
-        if self.getVideoFile() == '':
+        if self.videofile == '':
             return True
         return False
 
     def isInvalid(self):
-        if self.getVideoFile()[-3:] not in ['mp4', 'avi']:
+        if self.videofile[-3:] not in ['mp4', 'avi']:
             return True
         return False

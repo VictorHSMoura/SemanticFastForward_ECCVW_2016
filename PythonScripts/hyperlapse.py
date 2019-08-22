@@ -9,104 +9,51 @@ class InputError(Exception):
         return str(self.msg)
 
 class SemanticHyperlapse(object):
-    def __init__(self):
-        self.video = None
-        self.path = ''
-        self.extractor = ''
-        self.velocity = 0
-        self.maxVel = 0
-        self.alpha = []
-        self.beta = []
-        self.gama = []
-        self.eta = []
-
-    def getVideo(self):
-        return self.video
-
-    def setVideo(self, video):
+    def __init__(self, video, extractor, velocity, alpha, beta, gama, eta):
         self.video = video
-
-    def getPath(self):
-        return self.path
-
-    def setPath(self, path):
-        self.path = path
-
-    def getExtractor(self):
-        return self.extractor
-
-    def setExtractor(self, extractor):
-        self.checkExtractor(extractor)
+        self.path = os.getcwd()
         self.extractor = extractor
+        self.velocity = velocity
+        self.maxVel = 10 * velocity
+        self.alpha = alpha
+        self.beta = beta
+        self.gama = gama
+        self.eta = eta
 
-    def getVelocity(self):
-        return self.velocity
+        self.checkParameters()
 
-    def setVelocity(self, velocity):
-        try:
-            self.checkVelocity(velocity)
-            self.velocity = float(int(velocity))
-        except ValueError:
-            raise InputError('Invalid speedup value')
-            
-    def getMaxVel(self):
-        return self.maxVel
-
-    def setMaxVel(self, maxVel):
-        self.maxVel = maxVel
-
-    def getAlpha(self):
-        return self.alpha
-
-    def setAlpha(self, alpha):
-        self.alpha = self.checkAndSetWeights(alpha)
-        
-    def getBeta(self):
-        return self.beta
-
-    def setBeta(self, beta):
-        self.beta = self.checkAndSetWeights(beta)
-
-    def getGama(self):
-        return self.gama
-
-    def setGama(self, gama):
-        self.gama = self.checkAndSetWeights(gama)
-
-    def getEta(self):
-        return self.eta
-
-    def setEta(self, eta):
-        self.eta = self.checkAndSetWeights(eta)
-
-    def setPaths(self):
-        self.setPath(os.getcwd()) #get project path 
-        self.video.setPaths()
-
-    def checkExtractor(self, extractor):
-        if self.isEmpty(extractor):
+    def checkExtractor(self):
+        if self.isEmpty(self.extractor):
             raise InputError('Please select an extractor')
 
-    def checkVelocity(self, velocity):
-        if self.isEmpty(velocity):
+    def checkAndSetVelocity(self):
+        if self.isEmpty(self.velocity):
             raise InputError('Please insert speedup')
-
-        velocity = int(velocity) #raises ValueError if it isn't a number
-        if velocity <= 1:
-            raise InputError('Error: speedup <= 1')
+        try:
+            self.isVelocityValidNumber()
+            self.velocity = float(int(self.velocity))
+        except ValueError:
+            raise InputError('Invalid speedup value')
     
     def checkVideoInput(self):
-        if self.getVideo().isEmpty():
+        if self.video.isEmpty():
             raise InputError('Please insert input video first')
 
-        if self.getVideo().isInvalid():
+        if self.video.isInvalid():
             raise InputError('Video format invalid.\nValid formats: mp4, avi')
 
-    def checkAndSetWeights(self, weights):
-        try:
-            return self.convertWeights(weights)
-        except ValueError:
-            raise InputError('Please fill correctly all weights inputs')
+    def checkAndSetWeights(self):
+        weights = [self.alpha, self.beta, self.gama, self.eta]
+        for i in range(len(weights)):
+            try:
+                weights[i] = self.convertWeights(weights[i])
+            except ValueError:
+                raise InputError('Please fill correctly all weights inputs')
+
+    def isVelocityValidNumber(self):
+        velocity = int(self.velocity) #raises ValueError if it isn't a number
+        if velocity <= 1:
+            raise InputError('Error: speedup <= 1')
 
     def isEmpty(self, inputText):
         if inputText == '':
@@ -118,8 +65,14 @@ class SemanticHyperlapse(object):
             weights[i] = int(weights[i])	#if it isn't a number, it'll raises a ValueError
         return weights
 
+    def opticalFlowExists(self):
+        videoFile = self.video.file()
+        outputFile = videoFile[:-4] + '.csv'
+
+        return os.path.isfile(outputFile)
+
     def opticalFlowCommand(self):
-        videoFile = self.correctPath(self.video.getVideoFile())
+        videoFile = self.correctPath(self.video.file())
         command = './optflow'
         videoParam = ' -v ' + videoFile
         configParam = ' -c default-config.xml'
@@ -132,13 +85,15 @@ class SemanticHyperlapse(object):
     def runOpticalFlow(self): # pragma: no cover
         os.chdir('../Vid2OpticalFlowCSV')
 
-        os.system(self.opticalFlowCommand())
+        if not self.opticalFlowExists():
+            os.system(self.opticalFlowCommand())
+        else:
+            print 'OpticalFlow already extracted.'
         
-        os.chdir(self.getPath())
-
+        os.chdir(self.path)
 
     def runMatlabSemanticInfo(self, eng): # pragma: no cover
-        videoFile = self.video.getVideoFile()
+        videoFile = self.video.file()
         extractionFile = videoFile[:-4] + '_face_extracted.mat'
         extractor = self.extractor
 
@@ -149,46 +104,36 @@ class SemanticHyperlapse(object):
 
     def getSemanticInfo(self, eng): # pragma: no cover
         eng.cd('SemanticScripts')
-        eng.addpath(self.video.getVideoPath())
+        eng.addpath(self.video.path())
         eng.addpath(os.getcwd())
         
         nonSemanticFrames, semanticFrames = self.runMatlabSemanticInfo(eng)
         
-        eng.cd(self.getPath())
+        eng.cd(self.path)
         return (nonSemanticFrames, semanticFrames)
 
     def speedUp(self, eng, nonSemanticFrames, semanticFrames): # pragma: no cover
         eng.addpath(os.getcwd())
         eng.addpath('Util')
     
-        alpha = matlab.double([self.getAlpha()])
-        beta = matlab.double([self.getBeta()])
-        gama = matlab.double([self.getGama()])
-        eta = matlab.double([self.getEta()])
-
-        velocity = self.getVelocity()
-        video = self.getVideo()
+        alpha = matlab.double([self.alpha])
+        beta = matlab.double([self.beta])
+        gama = matlab.double([self.gama])
+        eta = matlab.double([self.eta])
     
         (ss, sns) = eng.FindingBestSpeedups(nonSemanticFrames, semanticFrames,
-                                            velocity, True, nargout=2)
+                                            self.velocity, True, nargout=2)
             
         eng.SpeedupVideo(
-            video.getVideoPath(), video.getVideoName(), self.getExtractor(),
-            ss, sns, alpha, beta, gama, eta, 'Speedup', velocity, nargout=0
+            self.video.path(), self.video.name(), self.extractor, ss, sns,
+            alpha, beta, gama, eta, nargout=0
         )
 
-    def setup(self, inputSpeedUp, extractor, alphaInput, betaInput, gamaInput, etaInput):	
+    def checkParameters(self):	
         self.checkVideoInput()
-        
-        self.setExtractor(extractor)
-
-        self.setVelocity(inputSpeedUp)
-        self.setMaxVel(self.getVelocity() * 10.0)
-
-        self.setAlpha(alphaInput)
-        self.setBeta(betaInput)
-        self.setGama(gamaInput)
-        self.setEta(etaInput)
+        self.checkExtractor()
+        self.checkAndSetVelocity()
+        self.checkAndSetWeights()
 
     def run(self, writeFunction): # pragma: no cover
         function = writeFunction
