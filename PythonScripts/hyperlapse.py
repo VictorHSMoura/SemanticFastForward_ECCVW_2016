@@ -83,7 +83,7 @@ class SemanticHyperlapse(object):
         return fullCommand
 
     def runOpticalFlow(self): # pragma: no cover
-        os.chdir('../Vid2OpticalFlowCSV')
+        os.chdir('Vid2OpticalFlowCSV')
 
         if not self.opticalFlowExists():
             os.system(self.opticalFlowCommand())
