@@ -15,7 +15,6 @@ class MainWindow(object):
     def __init__(self, root):
         self.root = root
         self.inputFile = []
-        self.acceleratedFile = []
         self.extractor = []
         self.speedUp = None
         self.weights = []
@@ -25,7 +24,6 @@ class MainWindow(object):
 
     def start(self):
         self.setInputFileLabel()
-        self.setAcceleratedFileLabel()
         self.setExtractor()
         self.setSpeedUpEntry()
         self.setWeightsEntries()
@@ -43,18 +41,8 @@ class MainWindow(object):
 
         self.inputFile[1].grid(row=0, column=1, columnspan=2)
 
-    def setAcceleratedFileLabel(self):
-        Label(self.root, text = 'Accelerated Video: ').grid(row=1, sticky=W)
-        self.acceleratedFile.append(StringVar())
-        self.acceleratedFile.append(
-            Label(self.root, textvariable = self.acceleratedFile[0])
-        )
-        self.acceleratedFile.append('')
-
-        self.acceleratedFile[1].grid(row=1, column=1, columnspan=2)
-
     def setExtractor(self):
-        Label(self.root, text = "Extractor: ").grid(row=2, sticky=W)
+        Label(self.root, text = "Extractor: ").grid(row=1, sticky=W)
         self.extractor.append(StringVar())
         self.extractor.append(
             Radiobutton(self.root, text = "face",
@@ -65,48 +53,42 @@ class MainWindow(object):
                         variable=self.extractor[0], value="pedestrian")
         )
         
-        self.extractor[1].grid(row=2, column=1)
-        self.extractor[2].grid(row=2, column=2)
+        self.extractor[1].grid(row=1, column=1)
+        self.extractor[2].grid(row=1, column=2)
 
     def setSpeedUpEntry(self):
-        Label(self.root, text = 'Final Speed: ').grid(row=3, sticky=W)
+        Label(self.root, text = 'Final Speed: ').grid(row=2, sticky=W)
         self.speedUp = tk.Entry(self.root, width=4)
 
-        self.speedUp.grid(row=3, column=1, columnspan=2, sticky=W+E+N+S)
+        self.speedUp.grid(row=2, column=1, columnspan=2, sticky=W+E+N+S)
 
     def setWeightsEntries(self):
         weight_names = ['α', 'β', 'γ', 'η']
 
         for i in range(len(weight_names)):
             Label(self.root,
-                  text = weight_names[i] + ' Weights: ').grid(row=i+4, sticky=W)
+                  text = weight_names[i] + ' Weights: ').grid(row=i+3, sticky=W)
             self.weights.append([tk.Entry(self.root, width=4) for _ in range(2)])
             [weight.insert(0, '50') for weight in self.weights[i]]
 
         for i in range(len(self.weights)):
             for j in range(len(self.weights[i])):
-                self.weights[i][j].grid(row=i+4, column=j+1)
+                self.weights[i][j].grid(row=i+3, column=j+1)
 
     def setErrorLabel(self):
         self.errorLabel = Label(self.root, text = '')
 
     def setButtons(self):
         self.buttons.append(
-            Button(root, text='Speed Up Video', command=self.preProcessAndRun)
+            Button(root, text='Speed Up and Stabilize', command=self.preProcessAndRun)
         )
-        self.buttons.append(
-            Button(root, text='Stabilize Video', command=self.videoStabilize)
-        )
-        self.buttons[0].grid(row=8, column=1)
-        self.buttons[1].grid(row=8, column=2)
+        self.buttons[0].grid(row=7, column=1, columnspan=2)
 
 
     def setMenu(self):
         menubar = Menu(self.root)
         filemenu = Menu(menubar, tearoff=0)
         filemenu.add_command(label='OpenFile', command=self.openOriginalVideo)
-        filemenu.add_command(label="Open Accelerated Video",
-                             command=self.openAcceleratedVideo)
         filemenu.add_separator()
         filemenu.add_command(label='Exit', command=self.root.quit)
         menubar.add_cascade(label='File', menu=filemenu)
@@ -144,32 +126,20 @@ class MainWindow(object):
         text.tag_configure('normal', font=('Arial', 10))
         text.insert(tk.END, 'Instructions:\n\n', 'title')
         
-        text.insert(tk.END, 'Accelerate Video\n', 'subtitle')
         text.insert(tk.END, '1: ', 'bold_italics')
         text.insert(tk.END, 'Go to File->OpenVideo and select the video '
                             + 'file that will be accelerated.\n', 'normal')
         text.insert(tk.END, '2: ', 'bold_italics')
-        text.insert(tk.END, 'Choose the speedup (speedup > 1).\n', 'normal')
+        text.insert(tk.END, 'Choose the extractor (most semantic part) '
+                            + 'for the video.\n', 'normal')
         text.insert(tk.END, '3: ', 'bold_italics')
+        text.insert(tk.END, 'Choose the speedup (speedup > 1).\n', 'normal')
+        text.insert(tk.END, '4: ', 'bold_italics')
         text.insert(tk.END, 'Choose graph weights α, β, γ, η. If you don\'t change '
                             + 'anything, the default parameters will be used.\n', 'normal')
-        text.insert(tk.END, '4: ', 'bold_italics')
-        text.insert(tk.END, 'Click on \'Speed Up Video\' and wait. Your '
-                            + 'video is being accelerated.\n', 'normal')
-        
-        text.insert(tk.END, '\nStabilize Video\n', 'subtitle')
-        text.insert(tk.END, '1: ', 'bold_italics')
-        text.insert(tk.END, 'Go to File->OpenAcceleratedVideo and select the '
-                            + 'accelerated video file that will be stabilized.\n', 'normal')
-        text.insert(tk.END, '2: ', 'bold_italics')
-        text.insert(tk.END, 'Go to File->OpenVideo and select the original '
-                            + 'video file.\n', 'normal')
-        text.insert(tk.END, '3: ', 'bold_italics')
-        text.insert(tk.END, 'Select the speedup applied to the original '
-                            + 'video file.\n', 'normal')
-        text.insert(tk.END, '4: ', 'bold_italics')
-        text.insert(tk.END, 'Click on \'Stabilize Video\' and wait. Your '
-                            + 'video is being stabilized.\n', 'normal')
+        text.insert(tk.END, '5: ', 'bold_italics')
+        text.insert(tk.END, 'Click on \'Speed Up and Stabilize\' and wait. Your '
+                            + 'video is being accelerated and stabilized.\n', 'normal')
         
         text.configure(state='disabled')
         text.pack()
@@ -183,15 +153,6 @@ class MainWindow(object):
         
         self.inputFile[0].set(videoName)
         self.inputFile[2] = videoFile
-
-    def openAcceleratedVideo(self):
-        videoFile = tkFileDialog.askopenfilename(
-            filetypes=([('All files', '*.*'), ('MP4 files', '*.mp4'),
-                        ('AVI files', '*.avi')]))
-        videoName = os.path.basename(videoFile)
-
-        self.acceleratedFile[0].set(videoName)
-        self.acceleratedFile[2] = videoFile
 
     def preProcess(self):
         video = Video(self.inputFile[2])
@@ -216,7 +177,7 @@ class MainWindow(object):
             hyperlapse.run(self.addLog)
         except InputError as IE:
             self.errorLabel['text'] = IE.msg
-            self.errorLabel.grid(row=9, columnspan=3)
+            self.errorLabel.grid(row=8, columnspan=3)
     
     def videoStabilize(self):
         raise NotImplementedError
