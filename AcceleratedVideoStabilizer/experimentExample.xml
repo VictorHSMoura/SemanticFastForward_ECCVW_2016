@@ -1,5 +1,7 @@
 <?xml version="1.0" ?> 
 <opencv_storage>
+
+<!-- If your path has spaces on it, replace them with &#32; -->
     
 <!-- [ strings ] File path -->
     <video_path>

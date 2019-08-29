@@ -1,12 +1,9 @@
 import matlab.engine
 import os
 from subprocess import Popen, PIPE, STDOUT
-
-class InputError(Exception):
-    def __init__(self, msg):
-        self.msg = msg
-    def __str__(self):
-        return str(self.msg)
+from hyperlapseExceptions import InputError
+from video import Video
+from stabilizer import Stabilizer
 
 class SemanticHyperlapse(object):
     def __init__(self, video, extractor, velocity, alpha, beta, gama, eta):
@@ -36,11 +33,7 @@ class SemanticHyperlapse(object):
             raise InputError('Invalid speedup value')
     
     def checkVideoInput(self):
-        if self.video.isEmpty():
-            raise InputError('Please insert input video first')
-
-        if self.video.isInvalid():
-            raise InputError('Video format invalid.\nValid formats: mp4, avi')
+        self.video.checkInput('Input')
 
     def checkAndSetWeights(self):
         weights = [self.alpha, self.beta, self.gama, self.eta]
@@ -78,7 +71,7 @@ class SemanticHyperlapse(object):
         configParam = ' -c default-config.xml'
         outputParam = ' -o ' + videoFile[:-4] + '.csv'
 
-        fullCommand = command + videoParam + configParam + outputParam		
+        fullCommand = command + videoParam + configParam + outputParam
         
         return fullCommand
 
@@ -124,10 +117,11 @@ class SemanticHyperlapse(object):
         (ss, sns) = eng.FindingBestSpeedups(nonSemanticFrames, semanticFrames,
                                             self.velocity, True, nargout=2)
             
-        eng.SpeedupVideo(
+        videoName = eng.SpeedupVideo(
             self.video.path(), self.video.name(), self.extractor, ss, sns,
-            alpha, beta, gama, eta, nargout=0
+            alpha, beta, gama, eta, nargout=1
         )
+        return videoName
 
     def checkParameters(self):	
         self.checkVideoInput()
@@ -135,23 +129,32 @@ class SemanticHyperlapse(object):
         self.checkAndSetVelocity()
         self.checkAndSetWeights()
 
-    def run(self, writeFunction): # pragma: no cover
-        function = writeFunction
+    def speedUpPart(self, writeFunction): # pragma: no cover
+        write = writeFunction
         
-        function('1/5 - Running Optical Flow\n', 'title')
+        write('1/6 - Running Optical Flow\n', 'title')
         self.runOpticalFlow()
     
-        function('2/5 - Starting Matlab\n', 'title')
+        write('2/6 - Starting Matlab\n', 'title')
         eng = matlab.engine.start_matlab('-nodisplay')
     
-        function('3/5 - Getting Semantic Info\n', 'title')
+        write('3/6 - Getting Semantic Info\n', 'title')
         (nonSemanticFrames, semanticFrames) = self.getSemanticInfo(eng)
 
-        function('4/5 - Speeding-Up Video\n', 'title')
-        self.speedUp(eng, nonSemanticFrames, semanticFrames)
+        write('4/6 - Speeding-Up Video\n', 'title')
+        videoName = self.speedUp(eng, nonSemanticFrames, semanticFrames)
         eng.quit()
     
-        function('5/5 - Finished\n', 'title')
+        return Video(videoName + '.avi')
+
+    def stabilizePart(self, acceleratedVideo, writeFunction):
+        stabilizer = Stabilizer(self.video, acceleratedVideo, self.velocity)
+        stabilizer.run(writeFunction)
+        os.chdir(self.path)
+
+    def run(self, writeFunction): # pragma: no cover
+        acceleratedVideo = self.speedUpPart(writeFunction)
+        self.stabilizePart(acceleratedVideo, writeFunction)
 
     def correctPath(self, path):
         splittedPath = path.split(' ')

@@ -1,4 +1,5 @@
 import os
+from hyperlapseExceptions import InputError
 
 class Video(object):
     def __init__(self, videofile):
@@ -24,3 +25,10 @@ class Video(object):
         if self.videofile[-3:] not in ['mp4', 'avi']:
             return True
         return False
+
+    def checkInput(self, videoType):
+        if self.isEmpty():
+            raise InputError('Please insert ' + videoType.lower() + ' video first')
+
+        if self.isInvalid():
+            raise InputError(videoType + ' video format invalid.\nValid formats: mp4, avi')

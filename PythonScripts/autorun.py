@@ -6,7 +6,9 @@ import Tkconstants, tkFileDialog
 import os, matlab.engine, subprocess
 from functools import partial
 from video import Video
-from hyperlapse import SemanticHyperlapse, InputError
+from hyperlapse import SemanticHyperlapse
+from stabilizer import Stabilizer
+from hyperlapseExceptions import InputError
 import threading, sys
 
 class MainWindow(object):
@@ -163,6 +165,9 @@ class MainWindow(object):
         text.insert(tk.END, 'Go to File->OpenVideo and select the original '
                             + 'video file.\n', 'normal')
         text.insert(tk.END, '3: ', 'bold_italics')
+        text.insert(tk.END, 'Select the speedup applied to the original '
+                            + 'video file.\n', 'normal')
+        text.insert(tk.END, '4: ', 'bold_italics')
         text.insert(tk.END, 'Click on \'Stabilize Video\' and wait. Your '
                             + 'video is being stabilized.\n', 'normal')
         
