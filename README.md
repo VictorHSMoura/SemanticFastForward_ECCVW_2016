@@ -43,7 +43,12 @@ This project is a two-fold source code. The first fold¹ is composed of MATLAB c
 * ²Boost 1 _(Tested with 1.54.0 and 1.58.0)_  
 * ²Doxygen 1 _(for documentation only - Tested with 1.8.12)_  
 
-### Usage ###
+### **1. I just want to speed-up my video!** ###
+Just follow the steps in  [PythonScripts](PythonScripts) folder.
+
+### **2. I want to speed-up my video and see the process!** ###
+
+#### Usage ####
 
 The project processing is decribed by the following flowchart:
 
