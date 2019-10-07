@@ -1,4 +1,5 @@
 
+
 [![Version](https://img.shields.io/badge/version-1.0-brightgreen.svg)](http://www.verlab.dcc.ufmg.br/fast-forward-video-based-on-semantic-extraction/#ECCVW2016)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
@@ -47,7 +48,7 @@ This project is a two-fold source code. The first fold¹ is composed of MATLAB c
 
 ### Usage ###
 
-**Before running the following steps, please go back to the project's main folder and execute step #7.**
+**Before running the following steps, please compile the Accelerated Video Stabilizer. Go back to the project's main folder and execute step #7 (just the _Compiling_ part).**
 
 If you don't want to read all the steps, feel free to use the **Quick Guide**. To see it, execute the first step and click on *Help Index* in the *Help* menu.
 
