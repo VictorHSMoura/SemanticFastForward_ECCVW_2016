@@ -28,7 +28,7 @@ Belo Horizonte - Minas Gerais -Brazil
 
 ![VeRLab](https://www.dcc.ufmg.br/dcc/sites/default/files/public/verlab-logo.png)
 
-**VeRLab:** Laboratory of Computer Vison and Robotics   
+**VeRLab:** Laboratory of Computer Vision and Robotics   
 http://www.verlab.dcc.ufmg.br
 
 ## Code ##

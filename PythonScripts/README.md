@@ -29,7 +29,7 @@ Belo Horizonte - Minas Gerais -Brazil
 
 ![VeRLab](https://www.dcc.ufmg.br/dcc/sites/default/files/public/verlab-logo.png)
 
-**VeRLab:** Laboratory of Computer Vison and Robotics
+**VeRLab:** Laboratory of Computer Vision and Robotics
 http://www.verlab.dcc.ufmg.br
 
 ## Code ##
@@ -48,7 +48,7 @@ This project is a two-fold source code. The first fold¹ is composed of MATLAB c
 
 ### Usage ###
 
-**Before running the following steps, please compile the Accelerated Video Stabilizer. Go back to the project's main folder and execute step #7 (just the _Compiling_ part).**
+**Before running the following steps, please compile the Optical Flow Estimator and the Accelerated Video Stabilizer. Go back to the project's main folder and execute steps #1 and #7 (just the compiling part).**
 
 If you don't want to read all the steps, feel free to use the **Quick Guide**. To see it, execute the first step and click on *Help Index* in the *Help* menu.
 
